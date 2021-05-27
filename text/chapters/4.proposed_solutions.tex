@@ -1,0 +1,71 @@
+\chapter{Proposed Solutions}
+\label{chapter:prop-sol}
+    This chapter describes proposed solutions, motivation for their choice and methods of their evaluation.
+
+\section{Baseline}
+\label{section:prop-baseline}
+    We originally chose DrQA~\parencite{chen2017reading-drqa} model, more precisely its document retriever part, as our document retrieval baseline. DrQA was designed for \enquote{machine reading at scale} --- combination of large-scale open-domain question answering and machine comprehension of text. The system was originally used for answering factoid questions while using Wikipedia as the knowledge database, which is relatively close to the task being solved in fact-checking. The DR part itself is based on TF-IDF weighting of BOW vectors while optimized by using hashing.
+    
+    Later, inspired by the criticism of choosing weak baselines presented in~\parencite{Yang_2019}, we decided to validate our TF-IDF baseline against the proposed Anserini toolkit. More specifically, we used Python toolkit --- Pyserini~\parencite{lin2021pyserini} --- to do so. Anserini itself is implemented in Java and built on the indexing and search features providing library --- Lucene, which in combination with a significant optimization makes it very effective. We used BM25 model from Anserini library and compared the results with DrQA using the FEVER~CS dataset (see section~\ref{section:fever-dataset}) and ČTK (see section~\ref{section:ctk-dataset}). Compared to DrQA, anserini's BM25 performance was slightly worse on the FEVER~CS test set but higher on the ČTK test set (see the results in the section~\ref{section:results}).
+
+
+\section{Neural Models}
+\label{section:prop-neural}
+    The aim of the work was to investigate neural models in the initial phase of DR and whether they can outperform very solid traditional baselines, as some recent work suggests. Aware of future use in the fact-checking pipeline, we were primarily interested in recall and mean reciprocal rank (MRR) metrics (see section~\ref{section:evaluation}), which capture the ability of models to identify relevant documents, which is central in the initial phase of DR. So our second goal was to come up with a model that would maximize performance on these two metrics. We did not pay much attention to hybrid neural models precisely because they incorporate traditional models to retrieve documents in the initial phase.
+
+\subsection{ColBERT}
+\label{sub:prop-colbert}
+% \noindent \textbf{ColBERT}
+    We replicated this recently published model that should provide the benefits of both cross-attention and two-tower paradigm under one roof (see~\ref{section:colbert}) using 
+    the implementation provided by the authors\footnote{available from \url{https://github.com/stanford-futuredata/ColBERT}}. We made only minimal changes such as changing the backbone model to multilingual mBERT and adjusting the special tokens.
+
+    The model was trained using triples \emph{query; positive paragraph; negative paragraph} with the objective to correctly classify paragraphs using a cross-entropy loss function. We constructed the training triples such that the claim created by a human annotator was taken as a query, a paragraph containing evidence as a positive and a random paragraph from a randomly selected document was used as a negative. This was done for both ČTK and FEVER~CS datasets. 
+    
+    For the ČTK dataset, the number of created claims is significantly lower than for FEVER~CS. Therefore, we further created more ČTK training triples with a similar process only instead of sampling the negative paragraph from a random document, we sampled it from the same document containing the positive paragraph (evidence). These negative paragraphs are called hard negatives. The number of training triples was still quite low, so we generated also synthetic triples as follows. We extracted a random sentence from a random paragraph, which we used as a query. The remaining paragraph after extraction was used as a positive paragraph. The negative paragraph was selected as a random paragraph from a random document. As a result, we generated about 600,000 triples ($\approx{500,000}$ synthetic and $\approx{100,000}$ using human-created claims) for the ČTK dataset.
+
+    % To generate more training triples, we repeated the process only with hard negatives, which were formed as non-evidence paragraphs from the document that contains the evidence. The amount of data was still unsatisfactory, especially for the ČTK dataset, so we generated synthetic triples. We extracted a random sentence from a paragraph, so that the remaining paragraph forms a positive passage and a randomly chosen paragraph forms a negative passage. As a result, we generated about 600 thousand triples ($\approx{500K}$ synthetic and $\approx{100K}$ original).
+
+
+% \noindent \textbf{Pre-training mBERT}
+\subsection{Pre-training mBERT}
+\label{sub:prop-pretrained}
+    A significant portion of time and work went to pre-training multilingual mBERT model in two-tower paradigm. Motivated by findings in~\parencite{chang2020twotower}, we tried to apply this approach to large-scale DR, which is closer to a realistic situation than a relatively small SQuAD dataset used in the above mentioned work.
+
+    In principle, we used the same setup as in~\parencite{chang2020twotower}, the multilingual mBERT~\parencite{devlin2018bert} with added FC linear layer which consolidated the output into embedding of the required dimension~512. This model was pre-trained unsupervised on ICT and BFS tasks. In the case of the FEVER~CS~dataset, we pre-trained the model on full-length Wikipedia articles. In the case of the ČTK~dataset, the model was pre-trained on the entire collection of documents (articles) provided by the Czech~News~Agency. This was followed by a supervised finetuning phase, where real claim was used as a query, passage containing evidence for the given claim as positive passage. 
+    % and $\#batch size - 1$ random passages as negatives.
+    
+    ICT pre-training examples were specifically formed by dividing the article into passages with a maximum length of 288 tokens (hyper-parameter taken from~\parencite{Lee_2019_ict}). Increasing to 512 tokens (the maximum capacity of the BERT model) did not bring any noticeable improvement.  From each passage a sentence was randomly selected that was consequently extracted in 90\% of cases and in the rest of the cases remained in the passage. The chosen sentence was considered a query and a passage from which it came as positive (relevant). Pre-training examples for BFS were created similarly, with the only difference that the positive passage was not the one containing the query but a randomly selected passage from the same document (article).
+    
+    In the finetuning phase, we used the constructed claims and their evidence as relevant (positive) passages. There exists claims, although relatively small amount, that were created by combining several passages from different articles (multi-hop claims). Without prejudice to the generality of the solution, we split the combined evidence, so query is always in a relation with only a single evidence passage. This way we slightly increase the amount of data by cloning the query for each part of its evidence.
+    %To illustrate this, consider the statement \emph{Prague is the capital of one of the European states.} with evidence combining two documents: \emph{Prague is the capital of the Czech Republic.} in a document A and \emph{Prague is a European country.} in a document B.
+    
+    Then we used this finetuned model to generate paragraph embeddings of the whole collection, so they are prepared for retrieval. In the retrieval phase, we used the FAISS library~\parencite{Johnson_2019_faiss} and constructed \emph{PCA384 Flat} index for ČTK data and \emph{Flat} index for FEVER~CS data. In the case of the \emph{PCA384 Flat} index, the original output of the pre-trained model with dimension 512 is transformed into a 384-dimensional vector using PCA. This was done to lower the memory footprint. \emph{Flat} index uses the full 512-dimensional vector. When given a query, the FAISS index then retrieves top-k most relevant documents, implemented as k-means clustering.
+
+
+\section{Evaluation}
+\label{section:evaluation}
+    We used standard precision, recall, F1 score and mean reciprocal rank (MRR) metrics to evaluate all models. MRR corresponds to the harmonic mean of the positions of first relevant document for each query (see equation~\ref{equ:mrr}). So it partially reflects also the ability of a model to provide relevant documents in the front position which was in combination with recall our key performance indicator.
+    
+    \begin{equation} \label{equ:recall}
+        \text{precision} = \frac{|(\text{relevant documents}) \cap (\text{retrieved documents})|}{|(\text{retrieved documents})|}
+    \end{equation}
+    
+    \begin{equation} \label{equ:precision}
+        \text{recall} = \frac{|(\text{relevant documents}) \cap (\text{retrieved documents})|}{|(\text{relevant documents})|}
+    \end{equation}
+    
+    \begin{equation} \label{equ:f1}
+        \text{F1} = \frac{2 \cdot \text{precision} \cdot \text{recall}}{ \text{precision} + \text{recall}}
+    \end{equation}
+    
+    \begin{equation} \label{equ:mrr}
+        \text{MRR} = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \frac{1}{\text{rank\textsubscript{i}}}
+    \end{equation}
+    
+    where:
+    \begin{where}
+        \item [Q] stands for a sample of queries
+        \item [rank_{i}] refers to the rank position of the first relevant document retrieved for the i-ith query
+    \end{where}
+    
+    In retrieval tasks, the output is typically a set of most relevant documents or list of documents sorted by a relevance score. The metrics are dependent on the number of returned documents and therefore it is appropriate to monitor their development depending on the number of retrieved documents \emph{k}. In that case, the metrics are marked with the suffix @\emph{k} informing about the number of returned documents as well. 

@@ -1,0 +1,26 @@
+\begin{tabular}{lr}
+\toprule
+            Cue &     DCI \\
+\midrule
+  hlavním městě &  0.4757 \\
+           se v &  0.4544 \\
+           se z &  0.4482 \\
+       křeče je &  0.4408 \\
+            v a &  0.4369 \\
+           a se &  0.4369 \\
+      V hlavním &  0.4369 \\
+           z je &  0.4369 \\
+         v roce &  0.4311 \\
+           v na &  0.4307 \\
+           v se &  0.4260 \\
+           z na &  0.4238 \\
+        v městě &  0.4238 \\
+        V městě &  0.4238 \\
+        Když se &  0.4238 \\
+    Když objeví &  0.4238 \\
+     Když křeče &  0.4238 \\
+         Když z &  0.4238 \\
+ Když přehřátí, &  0.4238 \\
+      se objeví &  0.4238 \\
+\bottomrule
+\end{tabular}

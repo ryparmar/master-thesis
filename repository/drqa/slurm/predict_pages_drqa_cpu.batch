@@ -1,0 +1,42 @@
+#!/bin/bash
+#SBATCH --time=4:00:00
+#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
+#SBATCH --partition=cpufast
+#SBATCH --mem=96G
+#SBATCH --error=../logs/predict_pages_drqa_cpu.%j.err
+#SBATCH --out=../logs/predict_pages_drqa_cpu.%j.out
+
+#module load Python
+module load PyTorch/1.5.1-fosscuda-2019b-Python-3.7.4
+
+cd ..
+
+source ../venv/bin/activate
+pwd
+echo "PYTHONPATH=$PYTHONPATH"
+echo "PATH=$PATH"
+echo "PYTHONHOME=$PYTHONHOME"
+echo "VIRTUAL_ENV=$VIRTUAL_ENV"
+
+# export FDIR=~/devel/python/FC/data/fever/data-en
+# export FDIR=~/devel/python/FC/data/fever/data-en-latest
+# export FDIR=~/devel/python/FC/data/fever/data_sentence-en-latest
+# export FDIR=~/devel/python/FC/data/fever/data-cs
+export FDIR=~/devel/python/FC/data/fever/data_titles-cs
+# export FDIR=~/devel/python/FC/data/fever/data_full-cs
+# export FDIR=~/devel/python/FC/data/fever/data_full_titles-cs
+# export FDIR=~/devel/python/FC/data/CTK
+
+export MODEL=${FDIR}/index/fever-tfidf-ngram=2-hash=16777216-tokenizer=simple.npz
+# export MODEL=${FDIR}/index/ctk-tfidf-ngram=2-hash=16777216-tokenizer=simple.npz
+export K=200
+export FEVER_DB=${FDIR}/fever/fever.db
+# export FEVER_DB=${FDIR}/interim/ctk.db
+# export PART=dev
+export PART=train
+export TEST_JSONL=${FDIR}/fever-data/${PART}.jsonl
+# export TEST_JSONL=${FDIR}/claims/${PART}_wiki_cs.jsonl
+export PRED_JSONL=${FDIR}/predictions/${PART}_drqa_k${K}.jsonl
+
+export PYTHONPATH=../fever-baselines/src:$PYTHONPATH
+python src/predict_pages_drqa.py --db ${FEVER_DB} --model ${MODEL} --in-file ${TEST_JSONL} --out-file ${PRED_JSONL} --max-page ${K}

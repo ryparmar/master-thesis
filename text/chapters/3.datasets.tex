@@ -1,0 +1,317 @@
+\chapter{Datasets}
+\label{chapter:datasets}
+    This chapter describes the datasets used in the experiments and work related to the measuring of the quality of constructed claims.
+    % Include summary table such as table 1 from https://arxiv.org/pdf/2010.08191.pdf. ?
+
+\section{FEVER~CS}
+\label{section:fever-dataset}
+    The original FEVER dataset is presented in~\parencite{thorne2018fever} containing $\approx$ 185,000 claims based on $\approx$ 50,000 popular Wikipedia articles. Each claim is annotated as either \emph{Supports, Refutes} or \emph{Not Enough Info}. In case the claim is verifiable --- annotated as \emph{Supports} or \emph{Refutes} --- there is also provided evidence on which is the annotation based. Evidence consists of single or multiple documents and even particular sentences which contain evidence.
+    
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{ c | c c c }
+            \textbf{dataset} & \textbf{supported} & \textbf{refuted} & \textbf{NEI}  \\
+            \hline
+            train & 53,542 & 18,149 & 35,639\\
+            dev & 3,333 & 3,333 & 3,333\\
+            test & 3,333 & 3,333 & 3,333\\
+        \end{tabular}
+        \caption[Label distribution in FEVER~CS dataset]{Label distribution in FEVER~CS dataset (with forced label uniformity in the validation sets to remove advantage for heavily biased predictors)}
+        \label{table:fever-label-split}
+    \end{table}
+    
+    The dataset was created in two stages. Firstly, the claims were generated using only the first paragraph (abstract\footnote{this paragraph contains general information relevant to the whole article}) of a randomly sampled Wikipedia article. The annotators were asked to create claims about some of the article's entities. In order to create more complex claims, the annotators had the option to use hyperlinked articles to include information from them. In the second stage, the annotators were asked to label the claim using one of the three mentioned labels. In case they choose either \emph{Supports} or \emph{Refutes} label they need to select the evidence paragraph for their decision.
+    
+    % CLAIM ILLUSTRATION
+    \begin{figure}[H]
+        \centering
+        \fbox{\begin{minipage}{0.9\textwidth}
+        \begin{hangparas}{2em}{1}
+            \textbf{ID}: 24173
+            
+            \textbf{Verifiable}: VERIFIABLE
+             
+            \textbf{Claim}: Mlčení jehňátek je náboženství.
+            
+            \textbf{Evidence}: Mlčení jehňátek (v originále The Silence of the Lambs) je americký thriller, který režíroval Jonathan Demme. Hlavními herci filmu jsou Jodie Fosterová, Anthony Hopkins, Scott Glenn, Anthony Heald, Ted Levine a Frankie Faison. Film měl premiéru ve Spojených státech 14. února 1991. Scénář je napsán podle stejnojmenného románu Thomase Harrise. Film získal celkově pět Oscarů - nejlepší film, nejlepší režie, nejlepší herec v hlavní roli, nejlepší herečka v hlavní roli a nejlepší adaptovaný scénář.
+            
+            \textbf{Verdict}: Refuted
+            
+        \end{hangparas}
+        \end{minipage}}
+        \caption{FEVER~CS data example}
+        \label{fig:data-example}
+    \end{figure}
+
+    Original English claims were translated into Czech using Google Cloud Translate API. Since Wikipedia has Czech mutation, we used Czech Wikipedia dump\footnote{available from \url{https://dumps.wikimedia.org/}}, processed it using WikiExtractor library~\parencite{wikiextractor} and kept only the abstract paragraphs. After this processing, the article database had about 453,500 articles. We used the training/development split available on FEVER website\footnote{\url{https://fever.ai/resources.html}}. A more detailed description of the creation of the FEVER~CS dataset is given here.~\parencite{herbert-mt}
+
+
+\section{ČTK}
+\label{section:ctk-dataset}
+    Inspired by~\parencite{thorne2018fever} and~\parencite{binau2020danish}, we started creating a Czech version of Fact-Extraction and Verification dataset\footnote{data collection platform available at \url{https://fcheck.fel.cvut.cz}}. We used vast database of articles provided by the Czech News Agency\footnote{Česká Tisková Kancelář (ČTK)} instead of the Wikipedia as the knowledge database. The Czech News Agency produces and also provides news articles, which are taken over by the media, public institutions and private companies. Because they are news texts, these articles have a different structure compared to Wikipedia articles as they use different language style, provide a much broader context and a different order of paragraphs - the first paragraph does not contain a summary as an article on Wikipedia that contains an abstract, which was used in the FEVER.
+    
+    \begin{figure}[H]
+        \centering
+        \fbox{\begin{minipage}{0.9\textwidth}
+        \begin{hangparas}{2em}{1}
+            \textbf{ID}: 142
+            
+            \textbf{Verifiable}: VERIFIABLE
+             
+            \textbf{Claim}: Astrid Lindgrenová neměla žádné děti.
+            
+            \textbf{Evidence}: Švédská spisovatelka Astrid Lindgrenová (1907-2002) už jako šestnáctiletá začala pracovat jako elévka v redakci regionálních novin. Záhy se však stala svobodnou matkou a nalezla si ve Stockholmu místo sekretářky. Protože měla málo peněz, svěřila syna Larse do péče pěstounů v Dánsku. Roku 1931 se provdala za úředníka Sturea Lindgrena, od té doby se mohla věnovat výchově syna a později i dcery Karin.
+            
+            \textbf{Verdict}: Refuted
+            
+        \end{hangparas}
+        \end{minipage}}
+        \caption{ČTK data example}
+        \label{fig:data-example}
+    \end{figure}
+    
+    The collection process was not fundamentally different from the collection in the FEVER dataset. Because ČTK articles were not linked by hyper-references of name entities such as Wikipedia, a \enquote{dictionary} was provided to annotators enabling them to use evidence from there as well. This \enquote{dictionary} was consisted of the most relevant articles found using the TF-IDF and pretrained two-tower dense retriever model described in section~\ref{sub:prop-pretrained}. In cooperation with journalists from the Faculty of Social Sciences of Charles University, we generated $\approx 3\,000$ at least once annotated claims.
+    %At the time of writing, the data are still manually checked and cleaned and therefore does not have a final form. 
+    Hence, the following analysis and results are based on the current snapshot from 05.05.2021. A more detailed description of data and data collection is given in~\parencite{herbert-mt}.
+    
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{ c | c c c }
+            \textbf{dataset} & \textbf{supported} & \textbf{refuted} & \textbf{NEI}  \\
+            \hline
+            train & 1,282 & 556 & 555\\
+            dev & 100 & 100 & 100\\
+            test & 200 & 200 & 200\\
+        \end{tabular}
+        \caption[Label distribution in ČTK dataset]{Label distribution in ČTK dataset (with forced label uniformity in the validation sets to remove advantage for heavily biased predictors)}
+        \label{table:ctk-label-split}
+    \end{table}
+    
+    Articles containing sports results and financial market results, which consisted mainly of tables of numbers, were first filtered from the ČTK article database. This reduced the number of articles to about 2,507,500. We worked with the texts at the paragraph level, so the articles had to be divided into paragraphs then. This step resulted in about 13,619,500 different paragraphs.
+
+    
+    % TOTO NAKONEC PRO v2.1 NEPLATI
+    % The data were split into training, development and test set (see \ref{table:ctk-label-split}) while any article could not serve as a source of claim or evidence for multiple sets, to avoid flow of information between sets\footnote{data leakage}.
+
+    % This data were collected as a part of Transformation of Journalisms Ethics in the Advent of Artificial Intelligence grant project with number TL02000288 supported by Technology Agency of the Czech Republic~\parencite{grant}.
+
+\section{Data Quality}
+\label{section:claim-quality}
+    In the claim generation phase of both FEVER and ČTK datasets, the annotators are asked to create variations of an initial claim by rephrasing, substituting part of the claim, negating or making it more general/specific. These mutations may have a different truth label than the original claim or even be non-verifiable with the given knowledge database, which will produce more claims of all annotation labels. During trials in~\parencite{thorne2018fever}, they found that a majority of annotators had difficulty with creating non-trivial negation mutations beyond adding \enquote{not} to the original.  
+    
+    In the following work~\parencite{derczynski-etal-2020-claim-quality}, they investigated the impact of these trivial negations on the quality of the dataset. To examine the claims in the context of quality of the dataset, they proposed two quality metrics: \emph{dataset-weighted cue information (DCI)} and \emph{cue productivity and coverage}. These metrics should help to reveal potential surface-level linguistic patterns that \enquote{leak} class information and cause bias in the data.
+    
+    \textbf{Dataset-weighted cue information (DCI)} is a simple measure based on information theory, which can indicate how much a pattern contributes to a classification. By calculating entropy (equation~\ref{equ:entropy})
+    \begin{equation}
+        \label{equ:entropy}
+        H(X) = -\sum_{i=1}^{n} P(x_i) \log P(x_i)
+    \end{equation} of class-balanced distribution \emph{N\textsubscript{k}} of cue frequencies for cue \emph{k} (equation~\ref{equ:normalized-counts})
+    \begin{equation}
+        \label{equ:normalized-counts}
+        N_k = \{ \frac{| A_{cue=k} \cap A_{class=y} |}{| A_{cue=k} |} \; y \in Y\}
+    \end{equation}
+    
+    where:
+    \begin{where}
+        \item [Y] denotes the set of possible labels \{\emph{supports, refutes, not enough info}\}
+        \item [A] is the set of all claims
+        \item [A_{cue = k}] is the set of claims containing cue \emph{k}
+        \item [A_{class = y}] is the set of claims annotated with label \emph{y}
+    \end{where}
+
+    \noindent We get an information-based factor $\lambda_{h}$ expressing the information gain as
+    \begin{equation}
+        \label{lam-h}
+        \lambda_h = 1 - H(N)
+    \end{equation}
+
+    \noindent This is further corrected for rareness of cues by involving frequency-based scaling factor $\lambda_{f}$, which plays a similar role to the IDF-term in the TF-IDF model.
+    \begin{equation}
+        \label{lam-f}
+        \lambda_f = (\frac{|A_{cue=k}|}{|A|})^{1/s}
+    \end{equation}
+    Where \emph{s} is a scaling factor corresponding to the estimated exponent of the feature’s power law frequency distribution. In~\parencite{derczynski-etal-2020-claim-quality} they suggest using $s = 3$ for English and we did the same for Czech.
+    
+    \noindent Finally, multiplying those two factors and taking their squared root will result in the DCI metric
+    \begin{equation}
+        \label{DCI}
+        DCI = \sqrt{\lambda_h \cdot \lambda_f}
+    \end{equation}
+    
+    They propose to use skip-grams as cues (patterns) thanks to the fact that they capture a sufficient amount of information and also ignore usually rare named entities and rather focus on the surrounding language. The skip-grams are generalization of n-grams, in which the words not need to be consecutive, but may leave a gaps which are skipped over. For example in a short sentence \textit{Cash walks the line}:
+    \begin{itemize}[label={}]
+        \item \textbf{bigrams:} Cash walks, walks the, the line;
+        \item \textbf{1-skip-bigrams:} Cash walks, Cash the, walks the, walks line, the line;
+        \item \textbf{2-skip-bigrams:} Cash walks, Cash the, Cash line, walks the, walks line, the line.
+    \end{itemize}
+    
+    % The metric is the inverse information gain of a skip-gram in the corpus weighted by the frequency of documents bearing the skip-gram (similarly to DF part in TF-IDF). 
+    
+    \textbf{Cue productivity and coverage} metrics proposed in \parencite{Niven_2019} are used with the slightly modified methodology as the structure of both datasets differ. Potential cues (patterns) are extracted from the data in the form of unigrams and bigrams. The \emph{productivity} of a cue ($\pi_{k}$) is calculated as the frequency of the most common label across the claims that contain the cue divided by the total number of claims which contain the cue irrespective of their label. Based on the definition of productivity, it can range $[\frac{1}{|Y|}, 1]$.
+    \begin{equation} \label{equ:productivity-cue}
+        \pi_k = \frac{\max\limits_{y \in Y} |A_{cue = k} \cap A_{class = y}|}{|A_{cue = k}|}
+    \end{equation}
+    \noindent There is also a proposed metric suitable for comparison between datasets, called utility that normalizes productivity by a number of distinct labels, which may differ across datasets
+    \begin{equation} \label{equ:utility-cue}
+        % \mathbb{1}
+        \rho_{k} = \pi_{k} - \frac{1}{|Y|}
+    \end{equation} The \emph{coverage} of a cue is defined as 
+    \begin{equation} \label{equ:coverage-cue}
+        % \mathbb{1}
+        \xi_{k} = \frac{|A_{cue = k}|}{|A|}
+    \end{equation} 
+    %Simply put, the more extreme the values of the above metrics, the higher the chance that a given cue is biased.~\parencite{Niven_2019}
+
+    It should be emphasized that the productivity metric assumes a balanced dataset with respect to labels. Otherwise, preference would be given to the most frequent label. In~\parencite{derczynski-etal-2020-claim-quality}, they propose the creation of a balanced data set by subsampling the majority class, which they achieve by creating ten random subsamples. Then the resulting metrics are obtained by averaging these subsample metrics.
+
+    We computed those metrics according to the above described methodology for both FEVER~CS and ČTK datasets.  In addition to unigram and bigram cues for the productivity and coverage metrics, we also tried to use lower-granular worpiece tokens as cues. Regarding the DCI, we used wordpieces, unigrams and 4-skip-bigrams as cues. Then we also calculated the harmonic mean of productivity and coverage, which allows us to reflect the overall effect of the cue on the dataset, because there exist a large number of cues with maximal possible productivity but minimal effect (for example, a given cue occurs in the dataset in only one claim, which is consistently labeled will result in $\pi_k = 1$).
+    
+    The results confirmed that the original FEVER dataset does indeed contain some cues that may indicate bias. This was also reflected in the translated FEVER~CS, where the words \enquote{není} and \enquote{pouze} showed high productivity of 0.57 and 0.55 and ended in the first 20 cues sorted by \emph{harmonic mean}\footnote{\emph{harmonic mean} refers to harmonic mean of productivity and coverage}. However, their impact on the quality of the entire dataset is limited as their coverage is not high, which is illustrated by their absence in the top-5 most influential cues (see table~\ref{table:claim-quality-fever-prod-cov}).
+    
+    According to the \emph{harmonic mean}, when using wordpiece tokens, the most influential are \enquote{\#\#'}, which is accent at the end of the word token, and \enquote{UNK}, which is a special token that includes any token not found in the dictionary (see table~\ref{table:claim-quality-fever-dci}). Despite the fact that they provide very little information to the model, they hold a dominant position in the results due to their high occurrence.
+    
+    The results on the ČTK dataset are significantly affected by the fact that the number of claims is quite low. This causes that even specific cues based on the thematic cluster formed around the original statement have a relatively higher impact on the dataset (for example, \enquote{Bühler Motor} in the table~\ref{table:claim-quality-ctk-dci}). Although ČTK also contains some constructs with a higher productivity, for example \enquote{Thomas Alva} (0.69) or \enquote{není} (0.7), their influence on the whole dataset is minimal to negligible.
+    
+    Although the analysis did not confirm any significant bias in the claims, there is still a need to monitor these metrics in the future as more claims are made. This part is not directly related to document retrieval, but it is very useful for the last step of the fact-verification pipeline (see Figure~\ref{fig:factcheck-pipeline}). In this step, a claim is classified either as true, false, or unverifiable in the context of the evidence provided. And awareness of the linguistic patterns that can leak information about the label can help explain the behavior of the algorithm and better evaluate it. This problem is modeled using a task called Natural Language Inference (NLI) and is further addressed in the work of~\parencite{herbert-mt}.
+    
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{lrrrr} 
+            \toprule
+            {Cue} &  Productivity &  Utility &  Coverage &  Harmonic Mean \\
+            \midrule
+            \multicolumn{5}{c}{Wordpieces} \\
+            \#\#'  &        0.3378 &   0.0045 &    0.6659 &         0.4482 \\
+            UNK &        0.3389 &   0.0056 &    0.6321 &         0.4412 \\
+            je    &        0.3455 &   0.0121 &    0.2682 &         0.3020 \\
+            v     &        0.3495 &   0.0162 &    0.2650 &         0.3015 \\
+            \#\#a   &        0.3485 &   0.0152 &    0.1219 &         0.1806 \\
+            \midrule
+            \multicolumn{5}{c}{Unigrams} \\
+            je    &        0.3469 &   0.0136 &    0.2653 &         0.3007 \\
+            v     &        0.3462 &   0.0128 &    0.2115 &         0.2625 \\
+            byl   &        0.3731 &   0.0397 &    0.1131 &         0.1736 \\
+            se    &        0.3690 &   0.0356 &    0.0986 &         0.1556 \\
+            na    &        0.3604 &   0.0270 &    0.0832 &         0.1351 \\
+            \midrule
+            \multicolumn{5}{c}{Bigrams} \\
+            v roce              &        0.4591 &   0.1258 &    0.0564 &         0.1004 \\
+            se narodil          &        0.4496 &   0.1162 &    0.0193 &         0.0370 \\
+            ve filmu            &        0.5163 &   0.1830 &    0.0115 &         0.0224 \\
+            narodil v           &        0.4748 &   0.1415 &    0.0104 &         0.0203 \\
+            je v                &        0.3443 &   0.0110 &    0.0103 &         0.0200 \\
+            \bottomrule
+        \end{tabular}
+        \caption[Productivity, utility, coverage and harmonic mean of productivity and coverage on FEVER~CS]{Productivity, utility, coverage and harmonic mean of productivity and coverage calculated on translated FEVER~CS dataset claims sorted by the harmonic mean.}
+        \label{table:claim-quality-fever-prod-cov}
+    \end{table}
+    
+    
+    \begin{table}[ht]
+        \parbox{.45\linewidth}{
+            \centering
+            \begin{tabular}{lr}
+                \toprule
+                          Cue &     DCI \\
+                \midrule
+                \multicolumn{2}{c}{Wordpieces} \\
+                         \#\#' &  0.6914 \\
+                            UNK &  0.6846 \\
+                            je &  0.5975 \\
+                             v &  0.5913 \\
+                           byl &  0.5281 \\
+                \midrule
+                \multicolumn{2}{c}{Unigrams} \\
+                            je &  0.5967 \\
+                             v &  0.5686 \\
+                           byl &  0.5281 \\
+                            se &  0.4991 \\
+                            na &  0.4912 \\
+                \midrule
+                \multicolumn{2}{c}{4-skip-bigrams} \\
+                        v roce &  0.4455 \\
+                         se v &  0.4172 \\
+                        byl v &  0.4100 \\
+                         je v &  0.3980 \\
+                   se narodil &  0.3762 \\
+                \bottomrule
+            \end{tabular}
+            \caption{DCI calculated on translated FEVER~CS dataset claims.}
+            \label{table:claim-quality-fever-dci}
+        }
+        \hfill
+        \parbox{.45\linewidth}{
+        \centering
+        \begin{tabular}{lr}
+            \toprule
+              Cue &     DCI \\
+            \midrule
+            \multicolumn{2}{c}{Wordpieces} \\
+                v & 0.6270 \\
+                z & 0.5668 \\
+                \#\#y & 0.5376 \\
+                \#\#u & 0.5361 \\
+                na & 0.5307 \\
+            \midrule
+            \multicolumn{2}{c}{Unigrams} \\
+                v & 0.5936 \\
+                se & 0.5282 \\
+                na & 0.5243 \\
+                a & 0.5014 \\
+                je & 0.5012 \\
+            \midrule
+            \multicolumn{2}{c}{4-skip-bigrams} \\
+                v roce & 0.4420 \\
+                se v & 0.4181 \\
+                v v & 0.3972 \\
+                na v & 0.3945 \\
+                Bühler Motor & 0.3860 \\
+            \bottomrule
+        \end{tabular}
+        \caption{DCI calculated on ČTK dataset claims.}
+        \label{table:claim-quality-ctk-dci}
+        }
+    \end{table}
+    
+    
+    \begin{table}[ht] \label{table:claim-quality-ctk-prod-cov}
+        \centering
+        \begin{tabular}{lrrrr}
+            \toprule
+            {Cue} &  Productivity &  Utility &  Coverage &  Harmonic Mean \\
+            \midrule
+            \multicolumn{5}{c}{Wordpieces} \\
+            v   &        0.3505 &   0.0171 &    0.3822 &         0.3656 \\
+            z   &        0.3456 &   0.0123 &    0.2009 &         0.2541 \\
+            \#\#y &        0.3508 &   0.0175 &    0.1487 &         0.2088 \\
+            \#\#u &        0.3552 &   0.0218 &    0.1466 &         0.2075 \\
+            se  &        0.3521 &   0.0188 &    0.1414 &         0.2017 \\
+            \midrule
+            \multicolumn{5}{c}{Unigrams} \\
+            v       &    0.3489  & 0.0156  &  0.2725    &     0.3060 \\
+            se      &    0.3504  & 0.0171  &  0.1401    &     0.2002 \\
+            na      &    0.3485  & 0.0151  &  0.1248    &     0.1838 \\
+            je      &    0.3545  & 0.0212  &  0.0999    &     0.1558 \\
+            V       &    0.3924  & 0.0590  &  0.0968    &     0.1552 \\
+            \midrule
+            \multicolumn{5}{c}{Bigrams} \\
+            v roce             &        0.4013 &   0.0679 &    0.0398 &         0.0723 \\
+            V roce             &        0.3649 &   0.0316 &    0.0166 &         0.0317 \\
+            se v               &        0.3755 &   0.0422 &    0.0150 &         0.0288 \\
+            v Praze            &        0.4300 &   0.0966 &    0.0139 &         0.0270 \\
+            více než           &        0.3804 &   0.0471 &    0.0122 &         0.0236 \\
+            \bottomrule
+        \end{tabular}
+        \caption[Productivity, utility, coverage and harmonic mean of productivity and coverage on ČTK]{Productivity, utility, coverage and harmonic mean of productivity and coverage calculated on ČTK dataset claims sorted by the harmonic mean.}
+    \end{table}
+
+
+
+% \section{SQuAD? - Czech}
+% Squad by byl lepsi az pro samotne hledani evidenci - obsahuje relativne malo dokumentu, coz neodpovida nasem doc retr tasku - SQUAD cca 500 train clanku a 35 dev clanku. ČTK data maji asi 5 milionu clanku, nad kterymi je potreba hledat.
+
+% \section{MSMARCO?}
+% je potreba prelozit
+
+% \section{TREC CAR?}
+% bylo by potreba prelozit

@@ -1,0 +1,129 @@
+\documentclass[thesis=M,english,11pt]{template/FITthesis}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\graphicspath{ {figs/} }
+\usepackage{algorithm}
+\usepackage{pdfpages}
+\usepackage{csquotes}
+\usepackage{dirtree} 
+\usepackage{bbm}
+\usepackage{subcaption}
+
+% \usepackage{appendix}
+% \usepackage{graphicx}
+% \usepackage{hhline}
+% \usepackage{bm}
+% \usepackage{listings}
+% \usepackage{cool}
+% \usepackage{tabto}
+% \usepackage{algpseudocode}
+% \usepackage[normalem]{ulem} %to strike the words
+
+% Margins
+% \usepackage[hmarginratio=3:2]{geometry}
+\usepackage[margin=3cm]{geometry}
+
+% Epigraph / stylish quote (in introduction)
+\epigraphfontsize{\small\itshape}
+\setlength\epigraphwidth{8cm}
+\setlength\epigraphrule{0pt}
+
+% Define where - description of equation
+\usepackage{enumitem}
+\SetLabelAlign{myright}{\hss\llap{$#1$}}
+\newlist{where}{description}{1}
+\setlist[where]{labelwidth=2cm, labelsep=1em, leftmargin=!, align=myright, font=\normalfont}
+
+% Citations Style
+% \usepackage[style=authoryear, backend=biber, sorting=nyt]{biblatex}
+% https://tex.stackexchange.com/questions/387281/how-to-use-biblatex-with-square-brackets-and-hyperref
+\usepackage[
+  backend = biber,
+  style=authoryear,
+  citestyle=authoryear,
+  sorting=nyt,
+  autocite=plain,
+  citereset=none,
+  url=true,
+  doi=false,
+  hyperref=true,
+  backref=false, 
+  isbn=false,
+  maxbibnames=3,
+  maxcitenames=1,
+  uniquelist=false,
+  useeditor=true
+]{biblatex}
+
+% comma after author in citation with parencite
+\renewcommand*{\nameyeardelim}{\addcomma\space}
+
+% increase spaces between bibliography entries
+\setlength\bibitemsep{1.2\itemsep}
+
+% parencite to [Author, Year]
+\DeclareCiteCommand{\parencite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+  \printtext[bibhyperref]{[\usebibmacro{cite}]}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+\addbibresource{references.bib}
+
+% remove colored rectangles around hyperrefs
+\hypersetup{hidelinks}
+
+\faculty{Faculty of Electrical Engineering}
+\department{Department of Computer Science}
+\title{Methods of Document Retrieval for Fact Checking}
+\authorGN{Martin} %(křestní) jméno (jména) autora
+\authorFN{Rýpar} %příjmení autora
+\authorWithDegrees{Bc. Martin Rýpar} %jméno autora včetně současných akademických titulů
+\author{Martin Rýpar} %jméno autora bez akademických titulů
+\supervisor{Ing. Jan Drchal PhD.}
+
+
+\acknowledgements{First of all, I would like to thank my supervisor Jan Drchal for his dedicated support, guidance and friendly approach. I am very grateful for the opportunity to work with him and all my current and former colleagues from the AI in Journalism project at AIC CTU. They created such a pleasant and motivating environment, for which I would like to express my great thanks to all of them. Last but not least, I would like to express a great thank you to all my family, friends and my girlfriend for their endless support.}
+
+
+
+\abstractCS{Tato práce se zabývá přístupy pro vyhledávání dokumentů. Primárně se zaměřuje na metody hlubokého vyhledávání s využitím jazykových modelů a jejich srovnání s tradičními TF-IDF a BM25 modely. Modely jsou zkoumány v doméně ověřování faktů s cílem je posléze zakomponovat do systému pro ověřování výroků. Naše výsledky potvrzují, že modely založené na jazykových modelech dokáží překonat velmi solidní a robustní tradiční přístupy. Přístup spočívající v dalším předtrénování na úlohách relevantních pro vyhledávání může přinést výrazné zvýšení výkonu, avšak za cenu delšího a pracnějšího tréninku a potřeby velkého množství dat. Model ColBERT implementující nové paradigma pozdní interakce překonal tradiční modely na obou souborech dat.}
+
+
+\abstractEN{This paper deals with approaches for large-scale document retrieval. It primarily focuses on deep retrieval methods using language models and their comparison with traditional TF-IDF and BM25 models. The models are investigated in the fact-checking domain with the goal of eventually incorporating them into a system for verifying claims. Our results confirm that language-based contextualized approaches can outperform very solid and robust traditional approaches. The approach of further pre-training on retrieval relevant tasks can yield significant performance gains, but at the cost of longer and more laborious training and the need for large amounts of data. ColBERT model implementing a new late interaction paradigm outperformed traditional models on both datasets.}
+
+
+\keywordsCS{vyhledávání dokumentů, ověřování faktů, vyhledávání informací, BERT, TF-IDF, BM25, NLP \newpage}
+\keywordsEN{document retrieval, fact checking, information retrieval, BERT, TF-IDF, BM25, NLP}
+
+\placeForDeclarationOfAuthenticity{Prague}
+\declarationOfAuthenticityOption{1}
+
+% -----------------------------------------------------------------------------------------------
+% DOKUMENT
+% -----------------------------------------------------------------------------------------------
+\begin{document}
+
+\input{chapters/0.introduction.tex}
+
+\input{chapters/1.fact-checking}
+    
+\input{chapters/2.background}
+
+\input{chapters/3.datasets}
+
+\input{chapters/4.proposed_solutions}
+
+\input{chapters/5.experiments}
+
+\input{chapters/conclusion}
+
+\printbibliography
+
+\input{appendices/acronyms}
+
+\input{appendices/repository}
+
+
+\end{document}
+

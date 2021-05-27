@@ -1,0 +1,26 @@
+\begin{tabular}{lr}
+\toprule
+   Cue &     DCI \\
+\midrule
+    je &  0.5967 \\
+     v &  0.5686 \\
+   byl &  0.5281 \\
+    se &  0.4991 \\
+    na &  0.4912 \\
+     a &  0.4780 \\
+    ve &  0.4662 \\
+  roce &  0.4584 \\
+  byla &  0.4581 \\
+   má &  0.4354 \\
+ není &  0.4319 \\
+     z &  0.4317 \\
+     s &  0.4313 \\
+ pouze &  0.4275 \\
+ filmu &  0.4161 \\
+  film &  0.4126 \\
+ hrál &  0.4122 \\
+  jako &  0.4107 \\
+   pro &  0.3985 \\
+    za &  0.3954 \\
+\bottomrule
+\end{tabular}

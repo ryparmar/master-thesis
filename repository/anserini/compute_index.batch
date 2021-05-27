@@ -1,0 +1,50 @@
+#!/bin/bash
+#SBATCH --time=04:00:00
+#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --partition=cpufast
+#SBATCH --job-name anserini-index
+#SBATCH --out=/home/ryparmar/logs/anserini_ctk_2.1_index_nfc.out
+
+# Load modules
+module load IPython/7.9.0-fosscuda-2019b-Python-3.7.4
+module load GCCcore/9.3.0
+module load Java/11.0.2
+
+source /home/ryparmar/venv/anserini/bin/activate
+
+# FEVER
+# export inputDataFolder=/mnt/data/factcheck/fever/data_titles-cs
+# export ROOT=/home/ryparmar/pyserini/fever_titles-cs
+# export outputDataFolder=${ROOT}/data-nfc
+# export indexFolder=${ROOT}/index-nfc
+
+# CTK
+export inputDataFolder=/mnt/data/factcheck/CTK/par5/interim/jsonl
+export ROOT=/home/ryparmar/pyserini/ctk
+export outputDataFolder=${ROOT}/data-nfc
+export indexFolder=${ROOT}/index-nfc
+
+
+# Make sure file/files in inputDataFolder are .json or .jsonl files
+# .xml wiki dump can be converted by wiki_to_jsonl.py script like below
+# 
+# python fever-cs-dataset/src/scripts/wiki_to_jsonl.py \
+#   /mnt/data/factcheck/fever/data-cs/cswiki.xml \
+#   /mnt/data/factcheck/fever/data-cs/cswiki.jsonl
+
+# Prepare the json/l files into jsonl format suitable for anserini
+python src/convert_collection_to_jsonl.py \
+    --collection_folder ${inputDataFolder} \
+    --output_folder ${outputDataFolder} \
+    --max_docs_per_file 10000000 \
+    --granularity 'paragraph'
+
+# Compute index
+python -m pyserini.index \
+    -collection JsonCollection \
+    -generator DefaultLuceneDocumentGenerator \
+    -threads 1 \
+    -input ${outputDataFolder} \
+    -index ${indexFolder} \
+    -storePositions -storeDocvectors -storeRaw

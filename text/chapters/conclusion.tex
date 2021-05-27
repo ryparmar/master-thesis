@@ -1,0 +1,25 @@
+\begin{conclusion}
+\label{section:conclusion}
+    Over the course of several months, we studied a wide range of articles and literature, conducted dozens of experiments with several models, and contributed to the production of the initial version of Czech Fact Extraction and Verification dataset using Czech News Agency articles (ČTK). As the datasets have undergone gradual development and modifications due to successive data collection and refinement, it is not possible to subject all experiments to a uniform comparison table. Therefore, we only present \enquote{condensed} results on the latest versions of both datasets (see chapter~\ref{chapter:datasets}).
+
+    In this thesis, we have investigated large-scale document retrieval methods in the fact-checking domain. We primarily focused on end-to-end neural models and their comparison with traditional TF-IDF and BM25 models. Traditional models proved to be very strong and robust baselines that are quite hard to outperform by neural methods, especially in the case of limited data. Nevertheless, both of our proposed solutions can outperform traditional methods.
+    
+    The solution based on multilingual BERT pre-trained on BFS and ICT tasks significantly outperformed traditional baselines on FEVER~CS dataset by more than 20\%~Recall@20 and 19\%~MRR@20. The results on the ČTK dataset are considerably weaker. We need to examine them more thoroughly, but we already believe that this is due to several factors. First, the lack of training data (ČTK~2K vs. FEVER~CS~100K), of which this approach requires a substantial amount. Secondly, the several times larger articles database (ČTK~13.5M vs. FEVER~CS~0.5M) that makes retrieval on the ČTK more challenging. And thirdly, news texts often contain paragraphs with little or no variation in content\footnote{often paragraphs that provide a broader context for the report}, but because these paragraphs are in different articles, they have different identifiers and are not captured by the evaluation, even though they might be relevant.
+    
+    ColBERT outperformed traditional baselines by more than 4\%~Recal@20 and 12\%~MRR@20 on FEVER~CS and by~6\% Recall@20 and almost 4\%~MRR@20 on ČTK. ColBERT pretrained on the ČTK ~+~FEVER~CS triples (see section~\ref{sub:prop-colbert}) decreased the performance compared to ColBERT pretrained only on the FEVER~CS triples. This is probably due to the introduction of additional noise into the model. The memory footprint of the ColBERT index can easily be reduced without much performance penalty. We halved the dimension of token representation, which decreased the performance by 3\%~Recall@20 and only by 1\%~MRR@20, which confirms the findings of the ColBERT authors~\parencite{colbert_2020}.
+    
+    
+    % The results are extremely poor on the ČTK dataset. We need to examine them more thoroughly, but we already believe that this is due to two factors. First, the lack of training data, of which this approach requires a substantial amount. And secondly, the several times larger articles database (ČTK 13.5M vs. FEVER~CS 0.5M) makes retrieval on the ČTK more challenging. ColBERT outperformed traditional baselines by 5\% Recal@20 and 1\% MRR@20 on FEVER~CS and by 6\% Recall@20 and almost 4\% MRR@20 on ČTK.
+    
+    
+    This thesis also focuses marginally on data collection, more precisely on the analysis of generated claims. The claims are analyzed in terms of potential bias in the form of surface-level linguistic structures that may have a negative impact at later stages of fact-checking. The existence of such structures has not been demonstrated to an extent that would have a noticeable effect on the overall quality of the data.
+    
+    % A very recent comparison suggests similar results~\parencite{n2021beir}. 
+    % \vspace{12pt}
+    \noindent \textbf{Future work}:
+    In the future work, we would like to focus on experiments with a recently published purely Czech language model CZERT~\parencite{sido2021czert} and a more robust multilingual LM XLM-R~\parencite{Conneau_2020}. 
+    It would also be interesting to explore the rapidly expanding field of efficient Transformers that can handle long inputs.
+
+    % zamerit se vice longformer pristupy; otestovat dalsi modely czerta, deeppavlova, XLM-R (jak v colbert tak v pre-training pristupu?);
+    % udelat dalsi krok a rozsirit pipelinu o sentence-retrieval vracejici kandidaty na evidence
+\end{conclusion}

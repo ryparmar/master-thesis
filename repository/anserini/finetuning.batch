@@ -1,0 +1,56 @@
+#!/bin/bash
+#SBATCH --time=4:00:00
+#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --partition=cpufast
+#SBATCH --job-name anserini-finetuning
+#SBATCH --out=/home/ryparmar/logs/anserini-ctk-finetuning.out
+
+# Load modules
+module load IPython/7.9.0-fosscuda-2019b-Python-3.7.4
+module load GCCcore/9.3.0
+module load Java/11.0.2
+
+source /home/ryparmar/venv/anserini/bin/activate
+
+# FEVER
+# export ROOT=/home/ryparmar/pyserini/fever_titles-cs
+# # export TRAIN=/mnt/data/factcheck/fever/data_titles-cs/fever-data/train.jsonl
+# export TRAIN=/home/ryparmar/fever-cs-deepl/train.jsonl
+# export SUBSET=${ROOT}/data-deepl-nfc/train-subset.jsonl
+# export FINETUNING=${ROOT}/finetuning-deepl-nfc
+# export INDEX=${ROOT}/index-nfc
+
+# CTK
+export ROOT=/home/ryparmar/pyserini/ctk
+export TRAIN=/mnt/data/factcheck/CTK/dataset/v2.1/nfc/train.jsonl
+export SUBSET=${ROOT}/data-nfc/train-subset-v2.1.jsonl
+export FINETUNING=${ROOT}/finetuning-v2.1-nfc
+export INDEX=${ROOT}/index-nfc
+
+export QUERIES=${FINETUNING}/queries.par.subset.tsv
+export QRELS=${FINETUNING}/qrels.par.subset.tsv
+
+export SUBSET_LEN=10000
+export GRANULARITY=paragraph
+
+# Generate subset
+python src/generate_subset.py \
+    --dataset_file ${TRAIN} \
+    --subset_file ${SUBSET} \
+    --length ${SUBSET_LEN}
+
+# Generate queries and qrels for subset file
+python src/generate_queries_and_qrels.py \
+    --dataset_file ${SUBSET} \
+    --output_queries_file ${QUERIES} \
+    --output_qrels_file ${QRELS} \
+    --granularity ${GRANULARITY}
+
+# Tune BM25
+python src/tune_bm25.py \
+    --runs_folder ${FINETUNING}/runs-bm25 \
+    --index_folder ${INDEX} \
+    --queries_file ${QUERIES} \
+    --qrels_file ${QRELS} \
+    --truth_file ${SUBSET}

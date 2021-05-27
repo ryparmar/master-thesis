@@ -1,0 +1,26 @@
+\begin{tabular}{lr}
+\toprule
+      Cue &     DCI \\
+\midrule
+        v &  0.6308 \\
+       na &  0.5818 \\
+        a &  0.5696 \\
+       se &  0.5691 \\
+        V &  0.5374 \\
+       je &  0.5357 \\
+        z &  0.5316 \\
+       za &  0.5111 \\
+        s &  0.4932 \\
+        o &  0.4927 \\
+     bude &  0.4796 \\
+    korun &  0.4724 \\
+       má &  0.4724 \\
+  hlavním &  0.4668 \\
+       do &  0.4639 \\
+     roce &  0.4594 \\
+       ve &  0.4546 \\
+        k &  0.4529 \\
+ Evropské &  0.4503 \\
+    křeče &  0.4502 \\
+\bottomrule
+\end{tabular}

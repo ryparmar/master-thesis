@@ -1,0 +1,26 @@
+\begin{tabular}{lr}
+\toprule
+          Cue &     DCI \\
+\midrule
+       v roce &  0.4455 \\
+         se v &  0.4172 \\
+        byl v &  0.4100 \\
+         je v &  0.3980 \\
+   se narodil &  0.3762 \\
+    ve filmu. &  0.3712 \\
+       byla v &  0.3682 \\
+ je člověk. &  0.3668 \\
+     je film. &  0.3609 \\
+        je na &  0.3571 \\
+       byl na &  0.3555 \\
+      hrál v &  0.3546 \\
+       V roce &  0.3516 \\
+         je a &  0.3495 \\
+ je americký &  0.3491 \\
+       byl ve &  0.3480 \\
+         je z &  0.3469 \\
+          v v &  0.3458 \\
+     ve filmu &  0.3455 \\
+   se objevil &  0.3440 \\
+\bottomrule
+\end{tabular}

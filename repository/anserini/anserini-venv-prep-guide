@@ -1,0 +1,11 @@
+srun -p cpufast --pty bash -i
+
+module load IPython/7.9.0-fosscuda-2019b-Python-3.7.4
+
+python3 -m venv venv/anserini
+
+source venv/anserini/bin/activate
+
+pip install -r experimental-martin/anserini-requirements.txt --user
+
+exit environment and module (ctrl + D)

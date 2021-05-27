@@ -1,0 +1,62 @@
+#!/bin/bash
+#SBATCH --time=04:00:00
+#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --partition=cpufast
+#SBATCH --job-name anserini-retrieval
+#SBATCH --out=/home/ryparmar/logs/anserini-ctk-retrieval.out
+
+# Load modules
+module load IPython/7.9.0-fosscuda-2019b-Python-3.7.4
+module load GCCcore/9.3.0
+module load Java/11.0.2
+
+source /home/ryparmar/venv/anserini/bin/activate
+
+export k1=0.6
+export b=0.5
+
+# FEVER
+# export DEV=/mnt/data/factcheck/fever/data_titles-cs/fever-data/dev.jsonl
+# export DEV=/home/ryparmar/fever-cs-deepl/dev.jsonl
+# export ROOT=/home/ryparmar/pyserini/fever_titles-cs
+# export INDEX=${ROOT}/index-nfc
+# export RETRIEVAL=${ROOT}/retrieval-deepl-nfc
+# # export OUTPUT=/mnt/data/factcheck/fever/data_titles-cs/predictions/dev_anserini_k500_1.2_0.5.jsonl
+# export OUTPUT=/home/ryparmar/fever-cs-deepl/predictions/dev_anserini_k500_${k1}_${b}.jsonl
+
+
+# CTK
+export SPLIT=train
+export DEV=/mnt/data/factcheck/CTK/dataset/v2.1/nfc/${SPLIT}.jsonl  #/mnt/data/factcheck/CTK/par5/ctk-data/dev.jsonl
+export ROOT=/home/ryparmar/pyserini/ctk
+export INDEX=${ROOT}/index-nfc
+export RETRIEVAL=${ROOT}/retrieval-v2.1-nfc
+export PREDICTIONS=${RETRIEVAL}/predicted.${SPLIT}.tsv
+export OUTPUT=${RETRIEVAL}/${SPLIT}_anserini_k500_${k1}_${b}.jsonl  #/mnt/data/factcheck/CTK/par5/predictions/${SPLIT}_anserini_k500_${k1}_${b}.jsonl
+
+# Generate queries and qrels files for the dev split = side-step needed by anserini
+python src/generate_queries_and_qrels.py \
+    --dataset_file ${DEV} \
+    --output_queries_file ${RETRIEVAL}/queries.${SPLIT}.tsv \
+    --output_qrels_file ${RETRIEVAL}/qrels.${SPLIT}.tsv \
+    --granularity paragraph
+
+# Retrieval run
+python src/retrieve.py \
+    --hits 500 --threads 1 \
+    --index ${INDEX} \
+    --queries ${RETRIEVAL}/queries.${SPLIT}.tsv \
+    --output ${RETRIEVAL}/predicted.${SPLIT}.tsv \
+    --k1 ${k1} --b ${b}  # BEST HYPERPARAMETERS: CTK 0.6 0.5 | FEVER 0.9 0.9 1.2 0.5
+
+# Evaluate
+python src/evaluate_doc_retrieval.py \
+    --truth_file ${DEV} \
+    --run_file ${RETRIEVAL}/predicted.${SPLIT}.tsv
+
+# Prepare predictions file for DR evaluation
+python src/generate_predictions.py \
+    --original_dev ${DEV} \
+    --predictions ${PREDICTIONS} \
+    --output ${OUTPUT} \
